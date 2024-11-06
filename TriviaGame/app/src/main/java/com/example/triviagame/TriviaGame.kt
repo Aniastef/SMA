@@ -7,6 +7,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
@@ -30,69 +31,88 @@ fun TriviaGame(modifier: Modifier = Modifier) {
         onDispose { tiltDetector.stopListening() }
     }
 
-    //intrebari si raspunsuri-*------************************----33
     val questions = listOf(
         Question("Care este capitala Franței?", listOf("Paris", "Berlin"), "Paris"),
         Question("Care este cel mai înalt munte din lume?", listOf("Kilimanjaro", "Everest"), "Everest"),
         Question("Ce planetă este cunoscută drept Planeta Roșie?", listOf("Marte", "Venus"), "Marte")
     )
 
-    // stat pentru întrebarea curentă
-    var currentQuestionIndex by remember { mutableStateOf(0) }
+    var currentQuestionIndex by rememberSaveable { mutableStateOf(0) }
     val currentQuestion = questions[currentQuestionIndex]
 
-    val answers = listOf("Paris", "Berlin")
-    val correctAnswer = "Paris"
+    var selectedAnswer by rememberSaveable { mutableStateOf<String?>(null) }
+    var isAnswerCorrect by rememberSaveable { mutableStateOf<Boolean?>(null) }
+    var answerLocked by rememberSaveable { mutableStateOf(false) }
 
-    // se verifica directia de inclinare a telefonului pentru selectarea unui raspuns
-    val selectedAnswer = when (tiltDirection.value) {
-        "Left" -> answers[0]
-        "Right" -> answers[1]
-        else -> null
+    // directia de inclinare
+    LaunchedEffect(tiltDirection.value) {
+        if (!answerLocked) {
+            val newSelectedAnswer = when (tiltDirection.value) {
+                "Left" -> currentQuestion.answers[0]
+                "Right" -> currentQuestion.answers[1]
+                else -> null
+            }
+
+
+            if (newSelectedAnswer != null && newSelectedAnswer != selectedAnswer) {
+                selectedAnswer = newSelectedAnswer
+                isAnswerCorrect = selectedAnswer == currentQuestion.correctAnswer
+                answerLocked = true // blocarea raspunsului dupa ce a fost selectat o data
+            }
+        }
     }
 
-     // UI-ul principal
+    // UI
     Column(
         modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = currentQuestion.question,
+        Text(
+            text = currentQuestion.question,
             style = MaterialTheme.typography.headlineMedium,
-            textAlign= TextAlign.Center
+            textAlign = TextAlign.Center
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // se afiseaza raspunsurile
+        // raspunsuri
         currentQuestion.answers.forEachIndexed { index, answer ->
-            Text(text = "${index + 1}. $answer",
-                style = MaterialTheme.typography.bodyLarge)
+            Text(
+                text = "${index + 1}. $answer",
+                style = MaterialTheme.typography.bodyLarge
+            )
         }
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // afiseaza directia selectata
         Text(
             text = "Rotește telefonul în stânga pentru varianta 1 și în dreapta pentru varianta 2",
             textAlign = TextAlign.Center
         )
 
-        // afiseaza corect sau gresit
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // afisare rezultat
         selectedAnswer?.let {
             Text(
-                text = if (it == currentQuestion.correctAnswer) "Corect! Răspunsul este: ${currentQuestion.correctAnswer}" else "Greșit! Răspunsul era: ${currentQuestion.correctAnswer}",
+                text = if (isAnswerCorrect == true) "Corect! Răspunsul este: ${currentQuestion.correctAnswer}" else "Greșit! Răspunsul era: ${currentQuestion.correctAnswer}",
                 style = MaterialTheme.typography.headlineMedium
             )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // buton pentru a trece la următoarea întrebare
+        // buton pentru urmatoarea intrebare
         Button(onClick = {
             currentQuestionIndex = (currentQuestionIndex + 1) % questions.size
+            // resetam starile pentru noua intrebare
+            selectedAnswer = null
+            isAnswerCorrect = null
+            answerLocked = false // deblocam raspunsul pentru intrebarea viitoare
         }) {
             Text(text = "Următoarea întrebare")
         }
     }
 }
+
