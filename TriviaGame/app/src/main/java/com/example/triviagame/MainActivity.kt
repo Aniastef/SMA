@@ -1,6 +1,7 @@
 package com.example.triviagame
 
 import NavBar
+import ProfilePage
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -16,11 +17,22 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             TriviaGameTheme {
+                var selectedItem by remember { mutableStateOf(0) } // Stare pentru pagina selectată
+
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
-                    topBar = { NavBar() }
+                    topBar = {
+                        NavBar(
+                            selectedItem = selectedItem,
+                            onItemSelected = { selectedItem = it }
+                        )
+                    }
                 ) { innerPadding ->
-                    TriviaGame(modifier = Modifier.padding(innerPadding))
+                    when (selectedItem) {
+                        0 -> TriviaGame(modifier = Modifier.padding(innerPadding))
+                        1 -> UserRankingPage(modifier = Modifier.padding(innerPadding))
+                        2 -> ProfilePage(modifier = Modifier.padding(innerPadding))
+                    }
                 }
             }
         }

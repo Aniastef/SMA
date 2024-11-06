@@ -69,13 +69,7 @@ fun TriviaGame(modifier: Modifier = Modifier) {
     }
 
     // UI
-     Box(
-        modifier = Modifier
-            .fillMaxSize()
 
-            .background(Color(0xFFDED8E3),
-                shape = RoundedCornerShape(16.dp)) ,
-        contentAlignment = Alignment.Center) {
     Column(
         modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
@@ -144,5 +138,5 @@ fun TriviaGame(modifier: Modifier = Modifier) {
 
 
     }
-}}
+}
 
