@@ -1,10 +1,4 @@
 package com.example.triviagame
-
-import android.content.Context
-import android.hardware.Sensor
-import android.hardware.SensorEvent
-import android.hardware.SensorEventListener
-import android.hardware.SensorManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -17,6 +11,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.triviagame.ui.theme.TriviaGameTheme
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -84,38 +79,6 @@ fun TriviaGame(modifier: Modifier = Modifier) {
             )
         }
     }
-}
-
-// Clasa TiltDetector pentru a gestiona detectarea înclinării
-class TiltDetector(context: Context) : SensorEventListener {
-    private val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
-    private val accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
-    val tiltDirection = mutableStateOf("")
-
-    fun startListening() {
-        sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI)
-    }
-
-    fun stopListening() {
-        sensorManager.unregisterListener(this)
-    }
-
-    override fun onSensorChanged(event: SensorEvent?) {
-        event?.let {
-            val x = event.values[0]
-            val y = event.values[1]
-
-            tiltDirection.value = when {
-                x > 5 -> "Left"
-                x < -5 -> "Right"
-                y > 5 -> "Up"
-                y < -5 -> "Down"
-                else -> "Center"
-            }
-        }
-    }
-
-    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
 }
 
 @Preview(showBackground = true)
