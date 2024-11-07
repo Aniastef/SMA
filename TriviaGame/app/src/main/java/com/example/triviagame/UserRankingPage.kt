@@ -37,8 +37,7 @@ fun UserRankingPage(modifier: Modifier = Modifier) {
             text = "Utilizatorii cu cele mai multe răspunsuri corecte",
             textAlign = TextAlign.Center,
             fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.Black
+            color = Color.DarkGray
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -81,8 +80,8 @@ fun UserRankingItem(position: Int, user: User) {
             Text(
                 text = user.name,
                 fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black
+                fontWeight = FontWeight.SemiBold,
+                color = Color.DarkGray
             )
             Text(
                 text = "${user.score} Răspunsuri corecte",

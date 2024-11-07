@@ -42,7 +42,7 @@ fun ProfilePage(modifier: Modifier = Modifier) {
             text = "Istvan Stefania",
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
-            color = Color.Black
+            color = Color.DarkGray
         )
 
         Text(
@@ -66,7 +66,8 @@ fun ProfilePage(modifier: Modifier = Modifier) {
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        ProfileStat(number = "85", label = "Răspunsuri Corecte")
+        ProfileStat(number = "85",
+            label = "Răspunsuri Corecte")
     }
 }
 
@@ -77,6 +78,6 @@ fun ProfileStat(number: String, label: String) {
         modifier = Modifier.padding(horizontal = 8.dp)
     ) {
         Text(text = number, fontWeight = FontWeight.Bold, fontSize = 20.sp)
-        Text(text = label, color = Color.Gray, fontSize = 14.sp)
+        Text(text = label, color = Color.DarkGray, fontSize = 14.sp)
     }
 }

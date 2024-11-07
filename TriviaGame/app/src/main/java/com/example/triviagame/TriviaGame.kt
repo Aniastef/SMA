@@ -25,7 +25,11 @@ data class Question(
 )
 
 @Composable
-fun TriviaGame(modifier: Modifier = Modifier) {
+fun TriviaGame(
+    questions: List<Question>,
+    modifier: Modifier = Modifier,
+    onFinished: () -> Unit // callback care se apeleaza la ultima intrebare
+) {
     val context = LocalContext.current
     val tiltDetector = remember { TiltDetector(context) }
     val tiltDirection = tiltDetector.tiltDirection
@@ -34,12 +38,6 @@ fun TriviaGame(modifier: Modifier = Modifier) {
         tiltDetector.startListening()
         onDispose { tiltDetector.stopListening() }
     }
-
-    val questions = listOf(
-        Question("Care este capitala Franței?", listOf("Paris", "Berlin"), "Paris"),
-        Question("Care este cel mai înalt munte din lume?", listOf("Kilimanjaro", "Everest"), "Everest"),
-        Question("Ce planetă este cunoscută drept Planeta Roșie?", listOf("Marte", "Venus"), "Marte")
-    )
 
     var currentQuestionIndex by rememberSaveable { mutableStateOf(0) }
     val currentQuestion = questions[currentQuestionIndex]
@@ -50,7 +48,6 @@ fun TriviaGame(modifier: Modifier = Modifier) {
 
     val progress = (currentQuestionIndex + 1) / questions.size.toFloat()
 
-    // directia de inclinare
     LaunchedEffect(tiltDirection.value) {
         if (!answerLocked) {
             val newSelectedAnswer = when (tiltDirection.value) {
@@ -58,53 +55,38 @@ fun TriviaGame(modifier: Modifier = Modifier) {
                 "Right" -> currentQuestion.answers[1]
                 else -> null
             }
-
-
             if (newSelectedAnswer != null && newSelectedAnswer != selectedAnswer) {
                 selectedAnswer = newSelectedAnswer
                 isAnswerCorrect = selectedAnswer == currentQuestion.correctAnswer
-                answerLocked = true // blocarea raspunsului dupa ce a fost selectat o data
+                answerLocked = true
             }
         }
     }
 
     // UI
-
     Column(
         modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
-
-        Text(
-            text = currentQuestion.question,
+        Text(text = currentQuestion.question,
             style = MaterialTheme.typography.headlineMedium,
-            textAlign = TextAlign.Center
-        )
+            textAlign = TextAlign.Center)
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // raspunsuri
         currentQuestion.answers.forEachIndexed { index, answer ->
-            Text(
-                text = "${index + 1}. $answer",
-                style = MaterialTheme.typography.bodyLarge
-            )
+            Text(text = "${index + 1}. $answer", style = MaterialTheme.typography.bodyLarge)
         }
 
         Spacer(modifier = Modifier.height(32.dp))
 
         if (!answerLocked) {
-            Text(
-                text = "Rotește telefonul în stânga pentru varianta 1 și în dreapta pentru varianta 2",
-                textAlign = TextAlign.Center
-            )
+            Text(text = "Rotește telefonul în stânga pentru varianta 1 și în dreapta pentru varianta 2", textAlign = TextAlign.Center)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // afisare rezultat
         selectedAnswer?.let {
             Text(
                 text = if (isAnswerCorrect == true) "Corect! Răspunsul este: ${currentQuestion.correctAnswer}" else "Greșit! Răspunsul era: ${currentQuestion.correctAnswer}",
@@ -114,29 +96,30 @@ fun TriviaGame(modifier: Modifier = Modifier) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // buton pentru urmatoarea intrebare
+        val isLastQuestion = currentQuestionIndex == questions.size - 1
+
         Button(onClick = {
-            currentQuestionIndex = (currentQuestionIndex + 1) % questions.size
-            // resetam starile pentru noua intrebare
-            selectedAnswer = null
-            isAnswerCorrect = null
-            answerLocked = false // deblocam raspunsul pentru intrebarea viitoare
+            if (isLastQuestion) {
+                onFinished() // revine la homepage la ultima intrebare
+            } else {
+                //urmatoarea intrebare
+                currentQuestionIndex++
+                selectedAnswer = null
+                isAnswerCorrect = null
+                answerLocked = false
+            }
         }) {
-            Text(text = "Următoarea întrebare")
+            Text(text = if (isLastQuestion) "Înapoi spre categorii" else "Următoarea întrebare")
         }
+
         Spacer(modifier = Modifier.height(30.dp))
 
         LinearProgressIndicator(
             progress = { progress },
-            trackColor = Color.LightGray,
             modifier = Modifier
                 .height(20.dp)
                 .padding(horizontal = 30.dp),
+            trackColor = Color.LightGray,
         )
-
-
-
-
     }
 }
-
