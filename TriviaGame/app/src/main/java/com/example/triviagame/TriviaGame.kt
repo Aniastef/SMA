@@ -90,6 +90,7 @@ fun TriviaGame(
         selectedAnswer?.let {
             Text(
                 text = if (isAnswerCorrect == true) "Corect! Răspunsul este: ${currentQuestion.correctAnswer}" else "Greșit! Răspunsul era: ${currentQuestion.correctAnswer}",
+                textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.headlineMedium
             )
         }
