@@ -12,18 +12,18 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-data class User(val name: String, val score: Int)
+data class UserRank(val name: String, val score: Int)
 
 @Composable
 fun UserRankingPage(modifier: Modifier = Modifier) {
 
     //lista fictiva
     val users = listOf(
-        User("Tălăpan Alexandra", 120),
-        User("Istvan Ștefania ", 110),
-        User("User3", 105),
-        User("User4", 90),
-        User("User5", 85)
+        UserRank("Tălăpan Alexandra", 120),
+        UserRank("Istvan Ștefania ", 110),
+        UserRank("User3", 105),
+        UserRank("User4", 90),
+        UserRank("User5", 85)
     )
 
     Column(
@@ -55,7 +55,7 @@ fun UserRankingPage(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun UserRankingItem(position: Int, user: User) {
+fun UserRankingItem(position: Int, user: UserRank) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
