@@ -1,33 +1,58 @@
 package com.example.triviagame
 
+import android.net.Uri
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil3.compose.rememberAsyncImagePainter
 import com.example.triviagame.R
+import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun ProfilePage(
-    modifier: Modifier = Modifier,
-    onLogout: () -> Unit // Callback for logout
+    modifier: Modifier = Modifier
 ) {
-    val scrollState = rememberScrollState()
+    val auth = FirebaseAuth.getInstance()
+    val currentUser = auth.currentUser
+
+    // Retrieve full name and email
+    val fullName = currentUser?.displayName ?: "Unknown Name"
+    val email = currentUser?.email ?: "Unknown Email"
+
+    // State to store selected image URI
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+
+    // Context for Toast
+    val context = LocalContext.current
+
+    // Launcher for selecting an image from the gallery
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        selectedImageUri = uri
+        if (uri != null) {
+            Toast.makeText(
+                context,
+                "Profile picture updated!",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
 
     Surface(
         modifier = Modifier
@@ -36,84 +61,51 @@ fun ProfilePage(
     ) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(scrollState),
+                .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
-            Spacer(modifier = Modifier.height(55.dp))
-            Image(
-                painter = painterResource(id = R.drawable.profile_picture),
-                contentDescription = "Profile Picture",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .size(120.dp)
-                    .clip(CircleShape)
-                    .background(Color.Gray)
-            )
+            Spacer(modifier = Modifier.height(50.dp))
+
+            // Display selected image or hamster placeholder
+            if (selectedImageUri != null) {
+                Image(
+                    painter = rememberAsyncImagePainter(model = selectedImageUri),
+                    contentDescription = "Profile Picture",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(120.dp)
+                        .clip(CircleShape)
+                )
+            } else {
+                Image(
+                    painter = painterResource(id = R.drawable.hamster), // Replace with your hamster image ID
+                    contentDescription = "Default Profile Picture",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(120.dp)
+                        .clip(CircleShape)
+                )
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Text(
-                text = "Istvan Stefania",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.DarkGray
-            )
-
-            Text(
-                text = "@istvanstefania",
-                fontSize = 16.sp,
-                color = Color.Gray,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(horizontal = 32.dp)
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = "Trivia Master",
-                fontSize = 16.sp,
-                color = Color.Gray,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(horizontal = 32.dp)
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            ProfileStat(
-                number = "85",
-                label = "Răspunsuri Corecte"
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Logout Button
-            Button(
-                onClick = onLogout, // Trigger logout callback
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(text = "Logout")
+            // Button to select a profile picture
+            Button(onClick = { imagePickerLauncher.launch("image/*") }) {
+                Text(text = "Upload Profile Picture")
             }
-        }
-    }
-}
 
-@Composable
-fun ProfileStat(number: String, label: String) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.padding(horizontal = 8.dp)
-    ) {
-        Text(
-            text = number,
-            fontWeight = FontWeight.Bold,
-            fontSize = 20.sp
-        )
-        Text(
-            text = label,
-            color = Color.DarkGray,
-            fontSize = 14.sp
-        )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Display full name and email
+            Text(
+                text = fullName,
+                fontSize = 24.sp
+            )
+            Text(
+                text = email,
+                fontSize = 16.sp
+            )
+        }
     }
 }

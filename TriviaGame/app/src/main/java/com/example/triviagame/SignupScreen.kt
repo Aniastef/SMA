@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,6 +16,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.userProfileChangeRequest
 
 class SignupScreen(
     private val auth: FirebaseAuth,
@@ -37,15 +39,41 @@ class SignupScreen(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
+                var fullName by remember { mutableStateOf("") }
+                var isFullNameTouched by remember { mutableStateOf(false) }
+
                 var email by remember { mutableStateOf("") }
                 var password by remember { mutableStateOf("") }
                 var confirmPassword by remember { mutableStateOf("") }
                 var isLoading by remember { mutableStateOf(false) }
 
+                // Full Name TextField
+                OutlinedTextField(
+                    value = fullName,
+                    onValueChange = {
+                        fullName = it
+                        isFullNameTouched = true
+                    },
+                    label = { Text("Full Name") },
+                    leadingIcon = { Icon(Icons.Outlined.Person, contentDescription = "Full Name Icon") },
+                    isError = isFullNameTouched && fullName.isBlank(),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                if (isFullNameTouched && fullName.isBlank()) {
+                    Text(
+                        text = "Full Name cannot be empty",
+                        color = Color.Red,
+                        fontSize = 12.sp,
+                        modifier = Modifier.align(Alignment.Start).padding(start = 16.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
                 // Email TextField
                 OutlinedTextField(
                     value = email,
-                    onValueChange = { email = it.trim() }, // Trim spaces
+                    onValueChange = { email = it.trim() },
                     label = { Text("Email") },
                     leadingIcon = { Icon(Icons.Outlined.Email, contentDescription = "Email Icon") },
                     isError = email.isNotBlank() && !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches(),
@@ -111,6 +139,10 @@ class SignupScreen(
                     Button(
                         onClick = {
                             val trimmedEmail = email.trim()
+                            if (fullName.trim().isBlank()) {
+                                Toast.makeText(context, "Full Name cannot be empty", Toast.LENGTH_SHORT).show()
+                                return@Button
+                            }
                             if (trimmedEmail.isBlank() || !android.util.Patterns.EMAIL_ADDRESS.matcher(trimmedEmail).matches()) {
                                 Toast.makeText(context, "Invalid email address", Toast.LENGTH_SHORT).show()
                                 return@Button
@@ -129,8 +161,23 @@ class SignupScreen(
                                 .addOnCompleteListener { task ->
                                     isLoading = false
                                     if (task.isSuccessful) {
-                                        Toast.makeText(context, "Account Created Successfully", Toast.LENGTH_SHORT).show()
-                                        onNavigateToLogin() // Navigate back to LoginScreen
+                                        val user = auth.currentUser
+                                        user?.updateProfile(
+                                            userProfileChangeRequest {
+                                                displayName = fullName // Save full name
+                                            }
+                                        )?.addOnCompleteListener { profileUpdateTask ->
+                                            if (profileUpdateTask.isSuccessful) {
+                                                Toast.makeText(context, "Account Created Successfully", Toast.LENGTH_SHORT).show()
+                                                onNavigateToLogin()
+                                            } else {
+                                                Toast.makeText(
+                                                    context,
+                                                    "Failed to update profile: ${profileUpdateTask.exception?.message}",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            }
+                                        }
                                     } else {
                                         val errorMessage = task.exception?.message ?: "Sign Up Failed"
                                         Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
@@ -138,7 +185,7 @@ class SignupScreen(
                                 }
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        enabled = email.isNotBlank() && password.isNotBlank() && confirmPassword.isNotBlank()
+                        enabled = fullName.isNotBlank() && email.isNotBlank() && password.isNotBlank() && confirmPassword.isNotBlank()
                     ) {
                         Text(text = "Sign Up")
                     }

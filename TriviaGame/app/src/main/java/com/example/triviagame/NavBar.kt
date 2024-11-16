@@ -2,16 +2,21 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NavBar(selectedItem: Int, onItemSelected: (Int) -> Unit) {
+fun NavBar(
+    selectedItem: Int,
+    onItemSelected: (Int) -> Unit,
+    onLogout: () -> Unit // Add callback for logout
+) {
     val items = listOf("Acasă", "Clasament Useri", "Profil")
     val selectedIcons = listOf(Icons.Filled.Home, Icons.Filled.Star, Icons.Filled.Person)
     val unselectedIcons = listOf(Icons.Outlined.Home, Icons.Outlined.Star, Icons.Outlined.Person)
@@ -28,6 +33,15 @@ fun NavBar(selectedItem: Int, onItemSelected: (Int) -> Unit) {
                     )
                 }
             }
-        },
+
+            // Add Logout Button
+            IconButton(onClick = onLogout) {
+                Icon(
+                    imageVector = Icons.Filled.ExitToApp,
+                    contentDescription = "Logout",
+                    tint = Color.Red
+                )
+            }
+        }
     )
 }

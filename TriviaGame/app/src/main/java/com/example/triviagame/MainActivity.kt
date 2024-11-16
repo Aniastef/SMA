@@ -98,7 +98,10 @@ fun GameApp(onLogout: () -> Unit) {
                 selectedItem = selectedItem,
                 onItemSelected = { index ->
                     selectedItem = index
-                    selectedCategory = null // Reset category when switching tabs
+                    selectedCategory = null // Reset category on navigation
+                },
+                onLogout = {
+                    onLogout() // Call the logout function from GameApp
                 }
             )
         }
@@ -126,7 +129,7 @@ fun GameApp(onLogout: () -> Unit) {
                 }
             }
             1 -> UserRankingPage(modifier = Modifier.padding(innerPadding))
-            2 -> ProfilePage(modifier = Modifier.padding(innerPadding), onLogout = onLogout)
+            2 -> ProfilePage(modifier = Modifier.padding(innerPadding))
         }
     }
 }
