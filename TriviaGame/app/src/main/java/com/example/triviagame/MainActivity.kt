@@ -64,6 +64,7 @@ fun MainApp(auth: FirebaseAuth) {
 fun GameApp(onLogout: () -> Unit) {
     var selectedItem by rememberSaveable { mutableIntStateOf(0) }
     var selectedQuestions by rememberSaveable { mutableStateOf<List<Question>?>(null) }
+    var selectedUser by remember { mutableStateOf<UserRank?>(null) }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -73,6 +74,7 @@ fun GameApp(onLogout: () -> Unit) {
                 onItemSelected = { index ->
                     selectedItem = index
                     selectedQuestions = null
+                    selectedUser = null // Reset selected user
                 },
                 onLogout = {
                     onLogout()
@@ -97,8 +99,23 @@ fun GameApp(onLogout: () -> Unit) {
                     )
                 }
             }
-            1 -> UserRankingPage(modifier = Modifier.padding(innerPadding))
+            1 -> {
+                if (selectedUser == null) {
+                    UserRankingPage(
+                        modifier = Modifier.padding(innerPadding),
+                        onUserClick = { user ->
+                            selectedUser = user // Navigate to the selected user's profile
+                        }
+                    )
+                } else {
+                    ProfilePage(
+                        user = selectedUser!!,
+                        modifier = Modifier.padding(innerPadding)
+                    )
+                }
+            }
             2 -> ProfilePage()
         }
     }
 }
+

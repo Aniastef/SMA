@@ -1,5 +1,7 @@
 package com.example.triviagame
+
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Email
@@ -10,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -33,16 +36,25 @@ class LoginScreen(
                 .padding(28.dp)
         ) {
             Column(
-                verticalArrangement = Arrangement.Center,
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                //logo
+                Image(
+                    painter = painterResource(id = R.drawable.logo),
+                    contentDescription = "Logo",
+                    modifier = Modifier
+                        .size(400.dp)
+                )
+
                 Text(
-                    text = "Login",
-                    fontSize = 32.sp,
+                    text = "Login to your account",
+                    fontSize = 24.sp,
                     color = Color.DarkGray
                 )
 
-                Spacer(modifier = Modifier.height(20.dp))
+                    //Spacer(modifier = Modifier.height(20.dp))
 
                 // email
                 OutlinedTextField(
@@ -62,7 +74,7 @@ class LoginScreen(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(10.dp))
+                //Spacer(modifier = Modifier.height(10.dp))
 
                 // password
                 OutlinedTextField(
@@ -83,7 +95,7 @@ class LoginScreen(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
                 // loading spinner / login button
                 if (isLoading) {

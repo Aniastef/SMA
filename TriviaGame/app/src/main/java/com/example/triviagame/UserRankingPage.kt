@@ -1,5 +1,6 @@
 package com.example.triviagame
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -15,16 +16,19 @@ import androidx.compose.ui.unit.sp
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 
-data class UserRank(val name: String, val score: Int)
+data class UserRank(val name: String, val email: String, val score: Int)
+
 
 @Composable
-fun UserRankingPage(modifier: Modifier = Modifier) {
+fun UserRankingPage(
+    modifier: Modifier = Modifier,
+    onUserClick: (UserRank) -> Unit
+) {
     val db = FirebaseFirestore.getInstance()
 
     var users by remember { mutableStateOf<List<UserRank>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
 
-    // Obține utilizatorii din Firestore
     LaunchedEffect(Unit) {
         db.collection("users")
             .orderBy("correctAnswers", Query.Direction.DESCENDING)
@@ -33,8 +37,9 @@ fun UserRankingPage(modifier: Modifier = Modifier) {
             .addOnSuccessListener { querySnapshot ->
                 val userList = querySnapshot.documents.mapNotNull { document ->
                     val name = document.getString("displayName") ?: "Unknown"
+                    val email = document.getString("email") ?: "Unknown"
                     val score = document.getLong("correctAnswers")?.toInt() ?: 0
-                    UserRank(name, score)
+                    UserRank(name, email, score)
                 }
                 users = userList
                 isLoading = false
@@ -51,7 +56,7 @@ fun UserRankingPage(modifier: Modifier = Modifier) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Utilizatorii cu cele mai multe răspunsuri corecte",
+            text = "Users with most correct answers",
             textAlign = TextAlign.Center,
             fontSize = 20.sp,
             color = Color.DarkGray
@@ -63,7 +68,7 @@ fun UserRankingPage(modifier: Modifier = Modifier) {
             CircularProgressIndicator()
         } else if (users.isEmpty()) {
             Text(
-                text = "Nu există date disponibile.",
+                text = "No users.",
                 textAlign = TextAlign.Center,
                 fontSize = 16.sp,
                 color = Color.Gray
@@ -74,23 +79,30 @@ fun UserRankingPage(modifier: Modifier = Modifier) {
                 modifier = Modifier.fillMaxWidth()
             ) {
                 itemsIndexed(users) { index, user ->
-                    UserRankingItem(position = index + 1, user = user)
+                    UserRankingItem(
+                        position = index + 1,
+                        user = user,
+                        onClick = { onUserClick(user) }
+                    )
                 }
             }
         }
     }
 }
 
-
 @Composable
-fun UserRankingItem(position: Int, user: UserRank) {
+fun UserRankingItem(
+    position: Int,
+    user: UserRank,
+    onClick: () -> Unit
+) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
+            .clickable { onClick() } // Detect click
     ) {
-        // Pozitia utilizatorului în clasament
         Text(
             text = "$position",
             fontSize = 18.sp,
@@ -101,7 +113,6 @@ fun UserRankingItem(position: Int, user: UserRank) {
 
         Spacer(modifier = Modifier.width(16.dp))
 
-        // Numele utilizatorului și scorul
         Column(
             modifier = Modifier.weight(1f)
         ) {
@@ -112,7 +123,7 @@ fun UserRankingItem(position: Int, user: UserRank) {
                 color = Color.DarkGray
             )
             Text(
-                text = "${user.score} Răspunsuri corecte",
+                text = "${user.score} correct answers",
                 fontSize = 14.sp,
                 color = Color.Gray
             )

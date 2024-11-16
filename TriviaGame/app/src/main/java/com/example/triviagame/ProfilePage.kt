@@ -14,28 +14,29 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.rememberAsyncImagePainter
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
+//  ProfilePage for logged-in user
 @Composable
 fun ProfilePage() {
     val auth = FirebaseAuth.getInstance()
     val currentUser = auth.currentUser
     val db = FirebaseFirestore.getInstance()
 
-    // user profile data state
+    // User profile data state
     var fullName by remember { mutableStateOf("Loading...") }
     var email by remember { mutableStateOf("Loading...") }
     var correctAnswersCount by remember { mutableIntStateOf(0) }
-
-    // tried to add an image but I don't have FireBase Storage
-    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) } // For profile picture
 
     val context = LocalContext.current
 
@@ -71,28 +72,27 @@ fun ProfilePage() {
         }
     }
 
-    // ui
+    // UI
     Surface(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Top
+            verticalArrangement = Arrangement.Center
         ) {
-            Spacer(modifier = Modifier.height(50.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            // display image/placeholder (i choose a hamster image)
+            // image/placeholder
             if (selectedImageUri != null) {
                 Image(
                     painter = rememberAsyncImagePainter(model = selectedImageUri),
                     contentDescription = "Profile Picture",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
-                        .size(120.dp)
+                        .size(200.dp)
                         .clip(CircleShape)
                 )
             } else {
@@ -101,14 +101,14 @@ fun ProfilePage() {
                     contentDescription = "Default Profile Picture",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
-                        .size(120.dp)
+                        .size(200.dp)
                         .clip(CircleShape)
                 )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(30.dp))
 
-            // upload new profile pic
+            // upload new profile picture
             val imagePickerLauncher = rememberLauncherForActivityResult(
                 contract = ActivityResultContracts.GetContent()
             ) { uri: Uri? ->
@@ -138,8 +138,55 @@ fun ProfilePage() {
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = "Răspunsuri corecte: $correctAnswersCount",
+                text = "Correct answers: $correctAnswersCount",
                 fontSize = 20.sp
+            )
+        }
+    }
+}
+
+// ProfilePage for other uses
+@Composable
+fun ProfilePage(user: UserRank, modifier: Modifier = Modifier) {
+    Surface(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.hamster),
+                contentDescription = "Default Profile Picture",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(200.dp)
+                    .clip(CircleShape)
+            )
+            Spacer(modifier = Modifier.height(30.dp))
+
+
+            Text(
+                text = "Profile of ${user.name}",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.DarkGray
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = "${user.email}",
+                fontSize = 16.sp
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "${user.score} correct answers",
+                fontSize = 20.sp,
+                color = Color.Black
             )
         }
     }
