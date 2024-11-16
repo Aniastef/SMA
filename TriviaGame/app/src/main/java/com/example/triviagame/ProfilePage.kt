@@ -20,40 +20,58 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.rememberAsyncImagePainter
-import com.example.triviagame.R
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
-fun ProfilePage(
-    modifier: Modifier = Modifier
-) {
+fun ProfilePage() {
     val auth = FirebaseAuth.getInstance()
     val currentUser = auth.currentUser
+    val db = FirebaseFirestore.getInstance()
 
-    // Retrieve full name and email
-    val fullName = currentUser?.displayName ?: "Unknown Name"
-    val email = currentUser?.email ?: "Unknown Email"
+    // user profile data state
+    var fullName by remember { mutableStateOf("Loading...") }
+    var email by remember { mutableStateOf("Loading...") }
+    var correctAnswersCount by remember { mutableIntStateOf(0) }
 
-    // State to store selected image URI
+    // tried to add an image but I don't have FireBase Storage
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
 
-    // Context for Toast
     val context = LocalContext.current
 
-    // Launcher for selecting an image from the gallery
-    val imagePickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        selectedImageUri = uri
-        if (uri != null) {
-            Toast.makeText(
-                context,
-                "Profile picture updated!",
-                Toast.LENGTH_SHORT
-            ).show()
+    // reload and synchronize data from FirebaseAuth and Firestore
+    LaunchedEffect(Unit) {
+        currentUser?.let { user ->
+            user.reload().addOnCompleteListener { reloadTask ->
+                if (reloadTask.isSuccessful) {
+                    fullName = user.displayName ?: "Unknown Name"
+                    email = user.email ?: "Unknown Email"
+
+                    // fetch correct answers count from Firestore
+                    db.collection("users").document(user.uid).get()
+                        .addOnSuccessListener { document ->
+                            if (document.exists()) {
+                                correctAnswersCount = document.getLong("correctAnswers")?.toInt() ?: 0
+                            } else {
+                                // initialize Firestore data if not present
+                                val initialData = mapOf(
+                                    "displayName" to fullName,
+                                    "correctAnswers" to 0
+                                )
+                                db.collection("users").document(user.uid).set(initialData)
+                            }
+                        }
+                        .addOnFailureListener {
+                            Toast.makeText(context, "Failed to fetch correct answers.", Toast.LENGTH_SHORT).show()
+                        }
+                } else {
+                    Toast.makeText(context, "Failed to reload user data.", Toast.LENGTH_SHORT).show()
+                }
+            }
         }
     }
 
+    // ui
     Surface(
         modifier = Modifier
             .fillMaxSize()
@@ -67,7 +85,7 @@ fun ProfilePage(
         ) {
             Spacer(modifier = Modifier.height(50.dp))
 
-            // Display selected image or hamster placeholder
+            // display image/placeholder (i choose a hamster image)
             if (selectedImageUri != null) {
                 Image(
                     painter = rememberAsyncImagePainter(model = selectedImageUri),
@@ -79,7 +97,7 @@ fun ProfilePage(
                 )
             } else {
                 Image(
-                    painter = painterResource(id = R.drawable.hamster), // Replace with your hamster image ID
+                    painter = painterResource(id = R.drawable.hamster),
                     contentDescription = "Default Profile Picture",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
@@ -90,14 +108,26 @@ fun ProfilePage(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Button to select a profile picture
+            // upload new profile pic
+            val imagePickerLauncher = rememberLauncherForActivityResult(
+                contract = ActivityResultContracts.GetContent()
+            ) { uri: Uri? ->
+                selectedImageUri = uri
+                if (uri != null) {
+                    Toast.makeText(
+                        context,
+                        "Profile picture updated!",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
             Button(onClick = { imagePickerLauncher.launch("image/*") }) {
                 Text(text = "Upload Profile Picture")
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Display full name and email
+            // user data
             Text(
                 text = fullName,
                 fontSize = 24.sp
@@ -105,6 +135,11 @@ fun ProfilePage(
             Text(
                 text = email,
                 fontSize = 16.sp
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "Răspunsuri corecte: $correctAnswersCount",
+                fontSize = 20.sp
             )
         }
     }

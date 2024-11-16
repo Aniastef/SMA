@@ -4,36 +4,36 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 
-class TiltDetector(context: Context) : SensorEventListener
-{
+class TiltDetector(context: Context) {
     private val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
     private val accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
-    val tiltDirection = mutableStateOf("")
+
+    private val _tiltDirection = mutableStateOf<String?>(null)
+    val tiltDirection: State<String?> = _tiltDirection
+
+    private val sensorEventListener = object : SensorEventListener {
+        override fun onSensorChanged(event: SensorEvent?) {
+            event?.let {
+                val x = it.values[0] // Axă X
+                _tiltDirection.value = when {
+                    x > 5 -> "Left"  // Rotire stânga
+                    x < -5 -> "Right" // Rotire dreapta
+                    else -> null
+                }
+            }
+        }
+
+        override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+    }
 
     fun startListening() {
-        sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI)
+        sensorManager.registerListener(sensorEventListener, accelerometer, SensorManager.SENSOR_DELAY_UI)
     }
 
     fun stopListening() {
-        sensorManager.unregisterListener(this)
+        sensorManager.unregisterListener(sensorEventListener)
     }
-
-    override fun onSensorChanged(event: SensorEvent?) {
-        event?.let {
-            val x = event.values[0]
-            val y = event.values[1]
-
-            tiltDirection.value = when {
-                x > 5 -> "Left"
-                x < -5 -> "Right"
-                y > 5 -> "Up"
-                y < -5 -> "Down"
-                else -> "Center"
-            }
-        }
-    }
-
-    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
 }

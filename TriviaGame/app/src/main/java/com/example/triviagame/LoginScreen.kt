@@ -37,14 +37,14 @@ class LoginScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "Welcome Back",
+                    text = "Login",
                     fontSize = 32.sp,
-                    color = Color.Black
+                    color = Color.DarkGray
                 )
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // Email TextField
+                // email
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it.trim() },
@@ -64,7 +64,7 @@ class LoginScreen(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // Password TextField
+                // password
                 OutlinedTextField(
                     value = password,
                     onValueChange = { password = it },
@@ -85,7 +85,7 @@ class LoginScreen(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // Show loading spinner or login button
+                // loading spinner / login button
                 if (isLoading) {
                     CircularProgressIndicator()
                 } else {
@@ -126,9 +126,9 @@ class LoginScreen(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // Navigate to SignUp
+                // navigate to SignUp
                 TextButton(onClick = onNavigateToSignUp) {
-                    Text("Don't have an account? Register", color = Color.Blue)
+                    Text("Don't have an account? Register")
                 }
             }
         }

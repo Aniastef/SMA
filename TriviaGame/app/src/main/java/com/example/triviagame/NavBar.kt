@@ -1,8 +1,8 @@
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Star
@@ -15,7 +15,7 @@ import androidx.compose.ui.graphics.Color
 fun NavBar(
     selectedItem: Int,
     onItemSelected: (Int) -> Unit,
-    onLogout: () -> Unit // Add callback for logout
+    onLogout: () -> Unit // logout callback
 ) {
     val items = listOf("Acasă", "Clasament Useri", "Profil")
     val selectedIcons = listOf(Icons.Filled.Home, Icons.Filled.Star, Icons.Filled.Person)
@@ -34,12 +34,12 @@ fun NavBar(
                 }
             }
 
-            // Add Logout Button
+
             IconButton(onClick = onLogout) {
                 Icon(
-                    imageVector = Icons.Filled.ExitToApp,
+                    imageVector = Icons.AutoMirrored.Filled.ExitToApp,
                     contentDescription = "Logout",
-                    tint = Color.Red
+                    tint = Color.Gray
                 )
             }
         }

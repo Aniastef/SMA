@@ -35,7 +35,7 @@ class SignupScreen(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(text = "Create Account", fontSize = 32.sp, color = Color.Black)
+                Text(text = "Create Account", fontSize = 32.sp, color = Color.DarkGray)
 
                 Spacer(modifier = Modifier.height(20.dp))
 
@@ -47,21 +47,21 @@ class SignupScreen(
                 var confirmPassword by remember { mutableStateOf("") }
                 var isLoading by remember { mutableStateOf(false) }
 
-                // Full Name TextField
+                //name
                 OutlinedTextField(
                     value = fullName,
                     onValueChange = {
                         fullName = it
                         isFullNameTouched = true
                     },
-                    label = { Text("Full Name") },
-                    leadingIcon = { Icon(Icons.Outlined.Person, contentDescription = "Full Name Icon") },
+                    label = { Text("Fullname") },
+                    leadingIcon = { Icon(Icons.Outlined.Person, contentDescription = "Fullname Icon") },
                     isError = isFullNameTouched && fullName.isBlank(),
                     modifier = Modifier.fillMaxWidth()
                 )
                 if (isFullNameTouched && fullName.isBlank()) {
                     Text(
-                        text = "Full Name cannot be empty",
+                        text = "Name cannot be empty",
                         color = Color.Red,
                         fontSize = 12.sp,
                         modifier = Modifier.align(Alignment.Start).padding(start = 16.dp)
@@ -70,7 +70,7 @@ class SignupScreen(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // Email TextField
+                // email
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it.trim() },
@@ -90,7 +90,7 @@ class SignupScreen(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // Password TextField
+                // password
                 OutlinedTextField(
                     value = password,
                     onValueChange = { password = it },
@@ -111,7 +111,7 @@ class SignupScreen(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // Confirm Password TextField
+                // confirm password
                 OutlinedTextField(
                     value = confirmPassword,
                     onValueChange = { confirmPassword = it },
@@ -132,7 +132,7 @@ class SignupScreen(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // Show loading spinner or sign-up button
+                // loading spinner / signup button
                 if (isLoading) {
                     CircularProgressIndicator()
                 } else {
@@ -140,7 +140,7 @@ class SignupScreen(
                         onClick = {
                             val trimmedEmail = email.trim()
                             if (fullName.trim().isBlank()) {
-                                Toast.makeText(context, "Full Name cannot be empty", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, "Name cannot be empty", Toast.LENGTH_SHORT).show()
                                 return@Button
                             }
                             if (trimmedEmail.isBlank() || !android.util.Patterns.EMAIL_ADDRESS.matcher(trimmedEmail).matches()) {
@@ -164,12 +164,22 @@ class SignupScreen(
                                         val user = auth.currentUser
                                         user?.updateProfile(
                                             userProfileChangeRequest {
-                                                displayName = fullName // Save full name
+                                                displayName = fullName
                                             }
                                         )?.addOnCompleteListener { profileUpdateTask ->
                                             if (profileUpdateTask.isSuccessful) {
-                                                Toast.makeText(context, "Account Created Successfully", Toast.LENGTH_SHORT).show()
-                                                onNavigateToLogin()
+                                                user.reload().addOnCompleteListener { reloadTask ->
+                                                    if (reloadTask.isSuccessful) {
+                                                        Toast.makeText(context, "Account created successfully!", Toast.LENGTH_SHORT).show()
+                                                        onNavigateToLogin()
+                                                    } else {
+                                                        Toast.makeText(
+                                                            context,
+                                                            "Failed to reload user data: ${reloadTask.exception?.message}",
+                                                            Toast.LENGTH_SHORT
+                                                        ).show()
+                                                    }
+                                                }
                                             } else {
                                                 Toast.makeText(
                                                     context,
@@ -179,7 +189,7 @@ class SignupScreen(
                                             }
                                         }
                                     } else {
-                                        val errorMessage = task.exception?.message ?: "Sign Up Failed"
+                                        val errorMessage = task.exception?.message ?: "Sign up failed!"
                                         Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
                                     }
                                 }
@@ -187,14 +197,14 @@ class SignupScreen(
                         modifier = Modifier.fillMaxWidth(),
                         enabled = fullName.isNotBlank() && email.isNotBlank() && password.isNotBlank() && confirmPassword.isNotBlank()
                     ) {
-                        Text(text = "Sign Up")
+                        Text(text = "Sign up")
                     }
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
 
                 TextButton(onClick = onNavigateToLogin) {
-                    Text("Already have an account? Login", color = Color.Blue)
+                    Text("Already have an account? Login!")
                 }
             }
         }
