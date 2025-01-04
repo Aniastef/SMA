@@ -74,7 +74,7 @@ fun GameApp(onLogout: () -> Unit) {
                 onItemSelected = { index ->
                     selectedItem = index
                     selectedQuestions = null
-                    selectedUser = null // Reset selected user
+                    selectedUser = null
                 },
                 onLogout = {
                     onLogout()
@@ -104,7 +104,7 @@ fun GameApp(onLogout: () -> Unit) {
                     UserRankingPage(
                         modifier = Modifier.padding(innerPadding),
                         onUserClick = { user ->
-                            selectedUser = user // Navigate to the selected user's profile
+                            selectedUser = user
                         }
                     )
                 } else {

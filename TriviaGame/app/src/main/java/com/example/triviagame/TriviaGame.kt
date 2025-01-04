@@ -34,12 +34,10 @@ fun TriviaGame(
     val tiltDetector = remember { TiltDetector(context) }
     val tiltDirection = tiltDetector.tiltDirection
 
-    // using accelerometer
     DisposableEffect(Unit) {
         tiltDetector.startListening()
         onDispose { tiltDetector.stopListening() }
     }
-
 
     var currentQuestionIndex by rememberSaveable { mutableIntStateOf(0) }
     val currentQuestion = questions[currentQuestionIndex]
@@ -55,33 +53,22 @@ fun TriviaGame(
         }
 
         val userDoc = db.collection("users").document(currentUser.uid)
-
         userDoc.get().addOnSuccessListener { document ->
             if (!document.exists()) {
-                // create user document if it doesn t exist
                 val initialData = mapOf(
                     "correctAnswers" to 0,
                     "answeredQuestions" to emptyList<String>()
                 )
                 userDoc.set(initialData).addOnSuccessListener {
-                    //Toast.makeText(context, "User document created", Toast.LENGTH_SHORT).show()
-                    // save progress after creating document
                     saveProgress(questionId, isCorrect)
-                }.addOnFailureListener { //error ->
-                    //Toast.makeText(context, "Failed to create user document: ${error.message}", Toast.LENGTH_LONG).show()
                 }
                 return@addOnSuccessListener
             }
 
-            // the document exists
             val answeredQuestions = (document.get("answeredQuestions") as? List<*>)?.filterIsInstance<String>() ?: emptyList()
-
             if (isCorrect && questionId !in answeredQuestions) {
                 val currentCount = document.getLong("correctAnswers") ?: 0
-
-                val updatedAnsweredQuestions = answeredQuestions.toMutableList().apply {
-                    add(questionId)
-                }
+                val updatedAnsweredQuestions = answeredQuestions.toMutableList().apply { add(questionId) }
 
                 userDoc.update(
                     mapOf(
@@ -99,8 +86,6 @@ fun TriviaGame(
         }
     }
 
-
-    // choose answer by rotating your phone
     LaunchedEffect(tiltDirection.value) {
         if (!answerLocked) {
             val newSelectedAnswer = when (tiltDirection.value) {
@@ -111,53 +96,56 @@ fun TriviaGame(
             if (newSelectedAnswer != null && newSelectedAnswer != selectedAnswer) {
                 selectedAnswer = newSelectedAnswer
                 isAnswerCorrect = selectedAnswer == currentQuestion.correctAnswer
-                if (isAnswerCorrect == true) {
-                    saveProgress(currentQuestion.id, true)
-                }
                 answerLocked = true
+                saveProgress(currentQuestion.id, isAnswerCorrect == true)
             }
         }
     }
 
-    // UI
     Column(
         modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // question
-        Text(
-            text = currentQuestion.question,
-            style = MaterialTheme.typography.headlineMedium,
-            textAlign = TextAlign.Center
-        )
+        Text("Question ${currentQuestionIndex + 1} of ${questions.size}", style = MaterialTheme.typography.bodyLarge)
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // answers
+        var expanded by remember { mutableStateOf(false) }
+        Box(modifier = Modifier.wrapContentSize(Alignment.Center)) {
+            Button(onClick = { expanded = true }) { Text("Go to Question") }
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                questions.forEachIndexed { index, _ ->
+                    DropdownMenuItem(
+                        text = { Text("Question ${index + 1}") },
+                        onClick = {
+                            currentQuestionIndex = index
+                            selectedAnswer = null
+                            isAnswerCorrect = null
+                            answerLocked = false
+                            expanded = false
+                        }
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(currentQuestion.question, style = MaterialTheme.typography.headlineMedium, textAlign = TextAlign.Center)
+        Spacer(modifier = Modifier.height(16.dp))
+
         currentQuestion.answers.forEachIndexed { index, answer ->
-            Text(
-                text = "${index + 1}. $answer",
-                style = MaterialTheme.typography.bodyLarge
-            )
+            Text("${index + 1}. $answer", style = MaterialTheme.typography.bodyLarge)
         }
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // instructions
-        if (!answerLocked) {
-            Text(
-                text = "Tilt your phone to the left to choose answer 1 and to the right to choose answer 2",
-                textAlign = TextAlign.Center
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // selected answer and answer reveal
         selectedAnswer?.let {
             Text(
-                text = if (isAnswerCorrect == true) "That is correct!" else "Wrong! The correct answer is ${currentQuestion.correctAnswer}",
+                if (isAnswerCorrect == true) "That is correct!" else "Wrong! The correct answer is ${currentQuestion.correctAnswer}",
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.headlineMedium
             )
@@ -165,20 +153,34 @@ fun TriviaGame(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // next question or trivia end
-        val isLastQuestion = currentQuestionIndex == questions.size - 1
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            Button(
+                onClick = {
+                    if (currentQuestionIndex > 0) {
+                        currentQuestionIndex--
+                        selectedAnswer = null
+                        isAnswerCorrect = null
+                        answerLocked = false
+                    }
+                },
+                enabled = currentQuestionIndex > 0
+            ) { Text("Last Question") }
 
-        Button(onClick = {
-            if (isLastQuestion) {
-                onFinished()
-            } else {
-                currentQuestionIndex++
-                selectedAnswer = null
-                isAnswerCorrect = null
-                answerLocked = false
-            }
-        }) {
-            Text(text = if (isLastQuestion) "End" else "Next question")
+            Button(
+                onClick = {
+                    if (currentQuestionIndex < questions.size - 1) {
+                        currentQuestionIndex++
+                        selectedAnswer = null
+                        isAnswerCorrect = null
+                        answerLocked = false
+                    } else {
+                        onFinished()
+                    }
+                }
+            ) { Text(if (currentQuestionIndex == questions.size - 1) "End" else "Next Question") }
         }
     }
 }

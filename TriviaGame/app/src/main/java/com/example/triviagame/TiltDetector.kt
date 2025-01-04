@@ -17,10 +17,10 @@ class TiltDetector(context: Context) {
     private val sensorEventListener = object : SensorEventListener {
         override fun onSensorChanged(event: SensorEvent?) {
             event?.let {
-                val x = it.values[0] // Axă X
+                val x = it.values[0]
                 _tiltDirection.value = when {
-                    x > 5 -> "Left"  // Rotire stânga
-                    x < -5 -> "Right" // Rotire dreapta
+                    x > 5 -> "Left"
+                    x < -5 -> "Right"
                     else -> null
                 }
             }

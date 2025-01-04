@@ -101,7 +101,7 @@ fun UserRankingItem(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
-            .clickable { onClick() } // Detect click
+            .clickable { onClick() }
     ) {
         Text(
             text = "$position",
